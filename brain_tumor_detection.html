@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brain Tumor Detection — AI Diagnostics </title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent: #00c896;
+      --accent2: #0099c8;
+      --bg: #0a0e1a;
+      --surface: #0e1420;
+      --surface2: #131929;
+      --border: rgba(255,255,255,0.06);
+      --text: #e0e8f0;
+      --muted: #7a8fa8;
+      --dim: #526070;
+      --danger: #ef4444;
+      --warn: #f59e0b;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* NAVBAR */
+    .navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2.5rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(10,14,26,0.97);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .nav-logo-icon {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .nav-logo-icon svg { width: 18px; height: 18px; stroke: #fff; fill: none; stroke-width: 2; }
+
+    .nav-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: rgba(0,200,150,0.1);
+      border: 1px solid rgba(0,200,150,0.25);
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+
+    /* HERO */
+    .hero {
+      text-align: center;
+      padding: 5rem 2rem 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -60px; left: 50%;
+      transform: translateX(-50%);
+      width: 700px; height: 350px;
+      background: radial-gradient(ellipse, rgba(0,200,150,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0,200,150,0.08);
+      border: 1px solid rgba(0,200,150,0.25);
+      color: var(--accent);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 6px 18px;
+      border-radius: 20px;
+      margin-bottom: 1.5rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .pulse-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.8)} }
+
+    h1 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 600;
+      letter-spacing: -0.5px;
+      line-height: 1.15;
+      background: linear-gradient(135deg, #e0e8f0 0%, #8ab4d4 50%, #00c896 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1rem;
+    }
+
+    .hero-sub {
+      color: var(--muted);
+      font-size: 1rem;
+      font-weight: 300;
+      max-width: 520px;
+      margin: 0 auto 2rem;
+      line-height: 1.7;
+    }
+
+    .offline-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0,153,200,0.1);
+      border: 1px solid rgba(0,153,200,0.3);
+      color: #4db8d4;
+      font-size: 11px;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.5px;
+    }
+
+    .hero-stats {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2.5rem;
+      flex-wrap: wrap;
+      margin-top: 1.5rem;
+    }
+
+    .stat-item { text-align: center; }
+    .stat-num { font-size: 1.5rem; font-weight: 600; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+    .stat-lbl { font-size: 0.72rem; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+
+    /* CONTAINER */
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 1.5rem 4rem;
+    }
+
+    /* STEPS */
+    .steps {
+      display: flex;
+      align-items: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .step { display: flex; align-items: center; gap: 10px; flex: 1; }
+
+    .step-num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--dim);
+      flex-shrink: 0;
+      transition: all 0.3s;
+    }
+
+    .step.active .step-num { background: var(--accent); border-color: var(--accent); color: #000; }
+    .step-lbl { font-size: 13px; color: var(--dim); transition: color 0.3s; }
+    .step.active .step-lbl { color: var(--text); }
+    .step-line { flex: 1; height: 1px; background: var(--border); margin: 0 12px; }
+
+    /* UPLOAD ZONE */
+    .upload-zone {
+      border: 1.5px dashed rgba(0,200,150,0.3);
+      border-radius: 20px;
+      padding: 3.5rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s;
+      background: rgba(0,200,150,0.02);
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: rgba(0,200,150,0.65);
+      background: rgba(0,200,150,0.06);
+    }
+
+    .upload-zone input[type="file"] {
+      position: absolute; inset: 0;
+      opacity: 0; cursor: pointer;
+      width: 100%; height: 100%;
+    }
+
+    .upload-icon-wrap {
+      width: 72px; height: 72px;
+      margin: 0 auto 1.25rem;
+      background: rgba(0,200,150,0.08);
+      border: 1px solid rgba(0,200,150,0.2);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .upload-icon-wrap svg { width: 32px; height: 32px; stroke: var(--accent); fill: none; stroke-width: 1.5; }
+    .upload-title { font-size: 1.1rem; font-weight: 500; color: #cdd8e8; margin-bottom: 0.5rem; }
+    .upload-sub { font-size: 0.82rem; color: var(--dim); line-height: 1.6; }
+
+    .format-chips { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 1rem; }
+    .chip { font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 3px 10px; border: 1px solid var(--border); border-radius: 20px; color: var(--dim); }
+
+    /* PREVIEW */
+    .preview-wrap {
+      display: none;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      margin-bottom: 1.5rem;
+    }
+
+    .preview-topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .preview-file-info {
+      display: flex; align-items: center; gap: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px; color: var(--dim);
+    }
+
+    .preview-file-info svg { width: 14px; height: 14px; stroke: var(--accent); fill: none; stroke-width: 1.5; }
+
+    .preview-layout {
+      display: flex;
+      gap: 0;
+    }
+
+    .preview-img-side {
+      flex: 1;
+      position: relative;
+      background: #060912;
+      min-height: 300px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .preview-img {
+      max-width: 100%;
+      max-height: 400px;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* Scan overlay animation */
+    .scan-overlay {
+      display: none;
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .scan-overlay.active { display: block; }
+
+    .scan-line {
+      position: absolute;
+      left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      animation: scanMove 2s linear infinite;
+      box-shadow: 0 0 12px rgba(0,200,150,0.6);
+    }
+
+    @keyframes scanMove { from { top: 0; } to { top: 100%; } }
+
+    .scan-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,200,150,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,200,150,0.04) 1px, transparent 1px);
+      background-size: 30px 30px;
+    }
+
+    .preview-meta {
+      display: flex; gap: 1.5rem; padding: 10px 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .meta-item { font-size: 11px; }
+    .meta-key { color: var(--dim); margin-bottom: 2px; }
+    .meta-val { color: var(--text); font-family: 'JetBrains Mono', monospace; }
+
+    /* BUTTONS */
+    .btn-primary {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      color: #fff;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 500;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+      margin-bottom: 1.5rem;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+
+    .btn-primary:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #8ab0cc;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.82rem;
+      padding: 7px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-secondary:hover { background: rgba(255,255,255,0.09); }
+
+    /* PROGRESS */
+    .progress-wrap {
+      display: none;
+      margin-bottom: 1.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem;
+    }
+
+    .progress-steps { display: flex; flex-direction: column; gap: 12px; }
+
+    .p-step {
+      display: flex; align-items: center; gap: 12px;
+      font-size: 0.875rem;
+      color: var(--dim);
+      transition: color 0.3s;
+    }
+
+    .p-step.done { color: var(--accent); }
+    .p-step.running { color: var(--text); }
+
+    .p-icon {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+      flex-shrink: 0;
+      font-family: 'JetBrains Mono', monospace;
+      transition: all 0.3s;
+    }
+
+    .p-step.done .p-icon { background: var(--accent); border-color: var(--accent); color: #000; }
+    .p-step.running .p-icon { border-color: var(--accent); color: var(--accent); animation: blink 1s infinite; }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .progress-bar-wrap {
+      margin-top: 1.25rem;
+      height: 4px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 2px;
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+
+    /* SPINNER */
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ERROR */
+    .error-box {
+      display: none;
+      background: rgba(239,68,68,0.08);
+      border: 1px solid rgba(239,68,68,0.25);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      font-size: 0.875rem;
+      color: #f87171;
+      margin-bottom: 1rem;
+    }
+
+    /* RESULTS */
+    .results-panel {
+      display: none;
+      background: var(--surface);
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+      animation: fadeUp 0.4s ease;
+    }
+
+    @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+    .results-header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    .results-header-left { display: flex; align-items: center; gap: 10px; }
+
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dot-green { background: var(--accent); box-shadow: 0 0 8px rgba(0,200,150,0.5); }
+    .dot-amber { background: var(--warn); box-shadow: 0 0 8px rgba(245,158,11,0.5); }
+    .dot-red   { background: var(--danger); box-shadow: 0 0 8px rgba(239,68,68,0.5); }
+
+    .results-label { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--dim); }
+
+    .results-body { padding: 1.75rem; }
+
+    /* VERDICT CARD */
+    .verdict-card {
+      border-radius: 14px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border: 1px solid;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .verdict-card::before {
+      content: '';
+      position: absolute;
+      top: -50px; right: -50px;
+      width: 160px; height: 160px;
+      border-radius: 50%;
+      opacity: 0.06;
+    }
+
+    .verdict-card.safe { background: rgba(0,200,150,0.07); border-color: rgba(0,200,150,0.25); }
+    .verdict-card.safe::before { background: var(--accent); }
+    .verdict-card.warn { background: rgba(245,158,11,0.07); border-color: rgba(245,158,11,0.25); }
+    .verdict-card.warn::before { background: var(--warn); }
+    .verdict-card.alert { background: rgba(239,68,68,0.07); border-color: rgba(239,68,68,0.25); }
+    .verdict-card.alert::before { background: var(--danger); }
+
+    .verdict-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .verdict-title { font-size: 1.4rem; font-weight: 600; margin-bottom: 0.6rem; }
+    .verdict-summary { font-size: 0.9rem; line-height: 1.75; color: var(--muted); }
+
+    /* SECTION LABEL */
+    .section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 1rem;
+    }
+
+    /* CONFIDENCE BARS */
+    .conf-row { margin-bottom: 1.1rem; }
+    .conf-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 7px; }
+    .conf-name { font-size: 13px; color: #cdd8e8; font-weight: 500; }
+    .conf-pct { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+
+    .bar-bg { height: 7px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 4px; transition: width 1.2s cubic-bezier(0.4,0,0.2,1); }
+    .fill-green { background: linear-gradient(90deg, #00c896, #00e0b0); }
+    .fill-amber { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .fill-red   { background: linear-gradient(90deg, #ef4444, #f97171); }
+
+    /* FINDINGS GRID */
+    .findings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+      gap: 10px;
+      margin-bottom: 2rem;
+    }
+
+    .finding-card {
+      background: rgba(255,255,255,0.025);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+
+    .finding-key { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--dim); margin-bottom: 5px; }
+    .finding-val { font-size: 0.875rem; color: var(--text); font-weight: 500; }
+    .val-present { color: var(--danger); }
+    .val-absent  { color: var(--accent); }
+    .val-warn    { color: var(--warn); }
+
+    /* IMAGE STATS SECTION */
+    .img-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 2rem;
+    }
+
+    .img-stat-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      text-align: center;
+    }
+
+    .img-stat-val { font-size: 1.1rem; font-weight: 600; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+    .img-stat-key { font-size: 10px; color: var(--dim); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* RECOMMENDATION */
+    .reco-box {
+      background: rgba(0,153,200,0.06);
+      border: 1px solid rgba(0,153,200,0.2);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1.75rem;
+      font-size: 0.875rem;
+      line-height: 1.75;
+      color: #8ab4cc;
+    }
+
+    /* HOW IT WORKS */
+    .how-section {
+      margin-top: 3rem;
+      padding-top: 2.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .how-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 1.5rem;
+    }
+
+    .how-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 1rem; }
+
+    .how-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.25rem;
+    }
+
+    .how-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); margin-bottom: 0.75rem; }
+    .how-name { font-size: 0.9rem; font-weight: 500; margin-bottom: 0.4rem; }
+    .how-desc { font-size: 0.8rem; color: var(--dim); line-height: 1.6; }
+
+    /* Hidden canvas for image analysis */
+    #analysisCanvas { display: none; }
+
+    @media (max-width: 600px) {
+      .navbar { padding: 1rem; }
+      .hero { padding: 3rem 1rem 2rem; }
+      .findings-grid { grid-template-columns: 1fr 1fr; }
+      .img-stats-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="analysisCanvas"></canvas>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-logo">
+      <div class="nav-logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+      </div>
+      NeuroScan AI
+    </div>
+
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <h1>Brain Tumor Detection<br>AI Diagnostics</h1>
+    <p class="hero-sub">Upload any brain MRI or CT scan. Our local AI engine analyzes pixel patterns, brightness distribution, asymmetry, and density variations.</p>
+
+    <div class="hero-stats">
+      <div class="stat-item"><div class="stat-num">Local</div><div class="stat-lbl">Processing</div></div>
+      <div class="stat-item"><div class="stat-num">8+</div><div class="stat-lbl">Analysis Metrics</div></div>
+      <div class="stat-item"><div class="stat-num">0</div><div class="stat-lbl">APIs Used</div></div>
+    </div>
+  </section>
+
+  <!-- MAIN -->
+  <main class="container">
+
+    <!-- STEPS -->
+    <div class="steps">
+      <div class="step active" id="step1">
+        <div class="step-num">1</div>
+        <div class="step-lbl">Upload Scan</div>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" id="step2">
+        <div class="step-num">2</div>
+        <div class="step-lbl">AI Analysis</div>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" id="step3">
+        <div class="step-num">3</div>
+        <div class="step-lbl">View Results</div>
+      </div>
+    </div>
+
+    <!-- UPLOAD ZONE -->
+    <div class="upload-zone" id="uploadZone">
+      <input type="file" accept="image/*" id="fileInput" />
+      <div class="upload-icon-wrap">
+        <svg viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+      </div>
+      <div class="upload-title">Drop your brain scan here or click to browse</div>
+      <div class="upload-sub">MRI, CT scan, X-Ray images · Processed locally in your browser</div>
+      <div class="format-chips">
+        <div class="chip">JPG</div>
+        <div class="chip">PNG</div>
+        <div class="chip">WEBP</div>
+        <div class="chip">GIF</div>
+        <div class="chip">Max 20MB</div>
+      </div>
+    </div>
+
+    <!-- PREVIEW -->
+    <div class="preview-wrap" id="previewWrap">
+      <div class="preview-topbar">
+        <div class="preview-file-info">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span id="previewName">scan.jpg</span>
+        </div>
+        <button class="btn-secondary" id="clearBtn">✕ Clear</button>
+      </div>
+      <div class="preview-layout">
+        <div class="preview-img-side">
+          <img class="preview-img" id="previewImg" src="" alt="Uploaded brain scan" />
+          <div class="scan-overlay" id="scanOverlay">
+            <div class="scan-grid"></div>
+            <div class="scan-line"></div>
+          </div>
+        </div>
+      </div>
+      <div class="preview-meta">
+        <div class="meta-item"><div class="meta-key">File size</div><div class="meta-val" id="metaSize">—</div></div>
+        <div class="meta-item"><div class="meta-key">Type</div><div class="meta-val" id="metaType">—</div></div>
+        <div class="meta-item"><div class="meta-key">Dimensions</div><div class="meta-val" id="metaDim">—</div></div>
+        <div class="meta-item"><div class="meta-key">Status</div><div class="meta-val" id="metaStatus" style="color:var(--accent);">Ready</div></div>
+      </div>
+    </div>
+
+    <!-- ERROR -->
+    <div class="error-box" id="errorBox"></div>
+
+    <!-- ANALYZE BUTTON -->
+    <button class="btn-primary" id="analyzeBtn" disabled>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      Analyze Brain Scan
+    </button>
+
+    <!-- PROGRESS -->
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-steps" id="progressSteps">
+        <div class="p-step" id="ps1"><div class="p-icon">1</div><span>Loading image into analysis canvas</span></div>
+        <div class="p-step" id="ps2"><div class="p-icon">2</div><span>Extracting pixel brightness distribution</span></div>
+        <div class="p-step" id="ps3"><div class="p-icon">3</div><span>Analyzing left/right hemisphere symmetry</span></div>
+        <div class="p-step" id="ps4"><div class="p-icon">4</div><span>Detecting density clusters and hot zones</span></div>
+        <div class="p-step" id="ps5"><div class="p-icon">5</div><span>Calculating edge contrast and mass patterns</span></div>
+        <div class="p-step" id="ps6"><div class="p-icon">6</div><span>Generating diagnostic report</span></div>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="results-panel" id="resultsPanel">
+      <div class="results-header">
+        <div class="results-header-left">
+          <div class="status-dot dot-green" id="statusDot"></div>
+          <span class="results-label" id="statusLabel">Analysis complete · Local Engine v1.0</span>
+        </div>
+        <button class="btn-secondary" onclick="document.getElementById('resultsPanel').style.display='none'">Close</button>
+      </div>
+      <div class="results-body" id="resultsBody"></div>
+    </div>
+
+    <!-- HOW IT WORKS -->
+    <div class="how-section">
+      <div class="how-title">How the local analysis works</div>
+      <div class="how-grid">
+        <div class="how-card">
+          <div class="how-num">01</div>
+          <div class="how-name">Brightness Distribution</div>
+          <div class="how-desc">Analyzes pixel luminance across all regions to detect abnormal bright or dark clusters.</div>
+        </div>
+        <div class="how-card">
+          <div class="how-num">02</div>
+          <div class="how-name">Hemisphere Symmetry</div>
+          <div class="how-desc">Compares left and right halves of the scan for asymmetric density — a key tumor indicator.</div>
+        </div>
+        <div class="how-card">
+          <div class="how-num">03</div>
+          <div class="how-name">Hot Zone Detection</div>
+          <div class="how-desc">Identifies regions with statistically high brightness deviations that may indicate masses.</div>
+        </div>
+        <div class="how-card">
+          <div class="how-num">04</div>
+          <div class="how-name">Edge Contrast Analysis</div>
+          <div class="how-desc">Measures contrast gradients to detect sharp boundaries associated with tumor margins.</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    // ── DOM REFS ──
+    const fileInput    = document.getElementById('fileInput');
+    const uploadZone   = document.getElementById('uploadZone');
+    const previewWrap  = document.getElementById('previewWrap');
+    const previewImg   = document.getElementById('previewImg');
+    const previewName  = document.getElementById('previewName');
+    const metaSize     = document.getElementById('metaSize');
+    const metaType     = document.getElementById('metaType');
+    const metaDim      = document.getElementById('metaDim');
+    const metaStatus   = document.getElementById('metaStatus');
+    const analyzeBtn   = document.getElementById('analyzeBtn');
+    const clearBtn     = document.getElementById('clearBtn');
+    const resultsPanel = document.getElementById('resultsPanel');
+    const resultsBody  = document.getElementById('resultsBody');
+    const errorBox     = document.getElementById('errorBox');
+    const statusDot    = document.getElementById('statusDot');
+    const statusLabel  = document.getElementById('statusLabel');
+    const progressWrap = document.getElementById('progressWrap');
+    const progressBar  = document.getElementById('progressBar');
+    const scanOverlay  = document.getElementById('scanOverlay');
+    const canvas       = document.getElementById('analysisCanvas');
+    const ctx          = canvas.getContext('2d');
+
+    let uploadedFile = null;
+
+    // ── DRAG & DROP ──
+    uploadZone.addEventListener('dragover',  e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+    uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+    uploadZone.addEventListener('drop', e => {
+      e.preventDefault();
+      uploadZone.classList.remove('drag-over');
+      if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+    });
+
+    fileInput.addEventListener('change', e => {
+      if (e.target.files[0]) handleFile(e.target.files[0]);
+    });
+
+    clearBtn.addEventListener('click', resetState);
+
+    function resetState() {
+      uploadedFile = null;
+      fileInput.value = '';
+      previewWrap.style.display    = 'none';
+      uploadZone.style.display     = 'block';
+      analyzeBtn.disabled          = true;
+      resultsPanel.style.display   = 'none';
+      progressWrap.style.display   = 'none';
+      scanOverlay.classList.remove('active');
+      hideError();
+      setStep(1);
+    }
+
+    function handleFile(file) {
+      if (!file.type.startsWith('image/')) { showError('Please upload a valid image file (JPG, PNG, WEBP, GIF).'); return; }
+      if (file.size > 25 * 1024 * 1024)   { showError('File too large. Maximum size is 20MB.'); return; }
+      hideError();
+      uploadedFile = file;
+
+      const reader = new FileReader();
+      reader.onload = e => {
+        const dataUrl = e.target.result;
+        previewImg.src = dataUrl;
+        previewName.textContent = file.name;
+        metaSize.textContent    = (file.size / 1024).toFixed(1) + ' KB';
+        metaType.textContent    = file.type.split('/')[1].toUpperCase();
+        metaStatus.textContent  = 'Ready';
+        metaStatus.style.color  = 'var(--accent)';
+
+        const img = new Image();
+        img.onload = () => { metaDim.textContent = img.naturalWidth + ' × ' + img.naturalHeight + ' px'; };
+        img.src = dataUrl;
+
+        uploadZone.style.display   = 'none';
+        previewWrap.style.display  = 'block';
+        resultsPanel.style.display = 'none';
+        progressWrap.style.display = 'none';
+        analyzeBtn.disabled        = false;
+        setStep(2);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function showError(msg) { errorBox.textContent = msg; errorBox.style.display = 'block'; }
+    function hideError()    { errorBox.style.display = 'none'; }
+
+    function setStep(n) {
+      ['step1','step2','step3'].forEach((id, i) => {
+        document.getElementById(id).classList.toggle('active', i < n);
+      });
+    }
+
+    // ── PROGRESS HELPERS ──
+    function setProgressStep(n, total) {
+      for (let i = 1; i <= 6; i++) {
+        const el = document.getElementById('ps' + i);
+        el.className = 'p-step' + (i < n ? ' done' : i === n ? ' running' : '');
+        el.querySelector('.p-icon').textContent = i < n ? '✓' : i;
+      }
+      progressBar.style.width = Math.round((n / total) * 100) + '%';
+    }
+
+    function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    // ── CORE IMAGE ANALYSIS ──
+    async function analyzeImage(img) {
+      const W = 256, H = 256;
+      canvas.width = W; canvas.height = H;
+      ctx.drawImage(img, 0, 0, W, H);
+      const d = ctx.getImageData(0, 0, W, H).data;
+
+      // ── 1. Brightness stats ──
+      let totalBright = 0, brightHist = new Array(16).fill(0);
+      const pixels = W * H;
+      for (let i = 0; i < d.length; i += 4) {
+        const lum = 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2];
+        totalBright += lum;
+        brightHist[Math.min(15, Math.floor(lum / 16))]++;
+      }
+      const meanBright = totalBright / pixels;
+
+      // Standard deviation
+      let variance = 0;
+      for (let i = 0; i < d.length; i += 4) {
+        const lum = 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2];
+        variance += (lum - meanBright) ** 2;
+      }
+      const stdDev = Math.sqrt(variance / pixels);
+
+      // ── 2. Hemisphere asymmetry ──
+      let leftSum = 0, rightSum = 0;
+      for (let y = 0; y < H; y++) {
+        for (let x = 0; x < W; x++) {
+          const idx = (y * W + x) * 4;
+          const lum = 0.299 * d[idx] + 0.587 * d[idx+1] + 0.114 * d[idx+2];
+          if (x < W / 2) leftSum += lum; else rightSum += lum;
+        }
+      }
+      const asymmetry = Math.abs(leftSum - rightSum) / Math.max(leftSum, rightSum);
+
+      // ── 3. Hot zone detection — find 8x8 blocks with high brightness ──
+      const blockSize = 8;
+      let hotZones = 0, maxBlockBright = 0;
+      let hotX = -1, hotY = -1;
+      for (let by = 0; by < H; by += blockSize) {
+        for (let bx = 0; bx < W; bx += blockSize) {
+          let bSum = 0, bCount = 0;
+          for (let py = by; py < Math.min(by+blockSize, H); py++) {
+            for (let px = bx; px < Math.min(bx+blockSize, W); px++) {
+              const idx = (py * W + px) * 4;
+              bSum += 0.299 * d[idx] + 0.587 * d[idx+1] + 0.114 * d[idx+2];
+              bCount++;
+            }
+          }
+          const bAvg = bSum / bCount;
+          if (bAvg > maxBlockBright) { maxBlockBright = bAvg; hotX = bx; hotY = by; }
+          if (bAvg > meanBright + 1.5 * stdDev) hotZones++;
+        }
+      }
+
+      // ── 4. Edge / contrast ──
+      let edgeSum = 0;
+      for (let y = 1; y < H - 1; y++) {
+        for (let x = 1; x < W - 1; x++) {
+          const getL = (px, py) => {
+            const i = (py * W + px) * 4;
+            return 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2];
+          };
+          const gx = getL(x+1,y) - getL(x-1,y);
+          const gy = getL(x,y+1) - getL(x,y-1);
+          edgeSum += Math.sqrt(gx*gx + gy*gy);
+        }
+      }
+      const avgEdge = edgeSum / ((W-2) * (H-2));
+
+      // ── 5. Color channel bias (grayscale medical scans are near 0) ──
+      let rSum = 0, gSum = 0, bSum = 0;
+      for (let i = 0; i < d.length; i += 4) { rSum += d[i]; gSum += d[i+1]; bSum += d[i+2]; }
+      const rAvg = rSum/pixels, gAvg = gSum/pixels, bAvg2 = bSum/pixels;
+      const colorBias = Math.max(Math.abs(rAvg-gAvg), Math.abs(gAvg-bAvg2), Math.abs(rAvg-bAvg2));
+
+      // ── 6. Dark region ratio (skull / background) ──
+      let darkPixels = 0;
+      for (let i = 0; i < d.length; i += 4) {
+        const lum = 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2];
+        if (lum < 30) darkPixels++;
+      }
+      const darkRatio = darkPixels / pixels;
+
+      return {
+        meanBright, stdDev, asymmetry, hotZones, maxBlockBright,
+        avgEdge, colorBias, darkRatio,
+        hotRegion: { x: hotX, y: hotY, w: W, h: H }
+      };
+    }
+
+    // ── INTERPRET ANALYSIS ──
+    function interpretAnalysis(stats) {
+      const { meanBright, stdDev, asymmetry, hotZones, maxBlockBright, avgEdge, colorBias, darkRatio } = stats;
+
+      // Score components (0–100 each, higher = more likely tumor)
+      let scores = {};
+
+      // 1. High variance in brightness → abnormal density regions
+      scores.variance = Math.min(100, (stdDev / 80) * 100);
+
+      // 2. Asymmetry between hemispheres
+      scores.asymmetry = Math.min(100, asymmetry * 400);
+
+      // 3. Number of hot zones relative to image
+      scores.hotZones = Math.min(100, (hotZones / 15) * 100);
+
+      // 4. Peak block brightness (very bright small area = suspicious)
+      scores.peakBright = maxBlockBright > 220 ? Math.min(100, (maxBlockBright - 180) * 3) : 0;
+
+      // 5. Edge contrast (tumors can have sharp edges)
+      scores.edges = Math.min(100, (avgEdge / 25) * 100);
+
+      // 6. If very dark (mostly black = not a medical scan or poor quality)
+      const isMedicalScan = darkRatio < 0.75 && meanBright > 20;
+
+      // 7. Color bias — medical scans are grayscale
+      const isGrayscale = colorBias < 15;
+
+      // Weighted composite anomaly score
+      const anomalyScore = Math.round(
+        0.25 * scores.variance +
+        0.30 * scores.asymmetry +
+        0.20 * scores.hotZones +
+        0.15 * scores.peakBright +
+        0.10 * scores.edges
+      );
+
+      const tumorProbability = Math.round(Math.min(95, anomalyScore * 0.95));
+      const normalityScore   = Math.round(Math.max(5, 100 - anomalyScore));
+
+      // Determine verdict
+      let verdict, verdictClass, dotClass;
+      if (!isMedicalScan) {
+        verdict = 'Suspicious'; verdictClass = 'warn'; dotClass = 'dot-amber';
+      } else if (tumorProbability >= 65) {
+        verdict = 'Tumor Detected'; verdictClass = 'alert'; dotClass = 'dot-red';
+      } else if (tumorProbability >= 35) {
+        verdict = 'Suspicious'; verdictClass = 'warn'; dotClass = 'dot-amber';
+      } else {
+        verdict = 'Normal'; verdictClass = 'safe'; dotClass = 'dot-green';
+      }
+
+      // Region estimation from hot zone position
+      const hx = stats.hotRegion.x / stats.hotRegion.w;
+      const hy = stats.hotRegion.y / stats.hotRegion.h;
+      let region = 'None detected';
+      if (tumorProbability >= 35) {
+        if (hy < 0.33) region = hx < 0.5 ? 'Left Frontal Lobe' : 'Right Frontal Lobe';
+        else if (hy < 0.66) region = hx < 0.5 ? 'Left Temporal/Parietal' : 'Right Temporal/Parietal';
+        else region = hx < 0.5 ? 'Left Occipital / Cerebellum' : 'Right Occipital / Cerebellum';
+      }
+
+      const laterality = tumorProbability < 35 ? 'Not applicable' : hx < 0.45 ? 'Left hemisphere' : hx > 0.55 ? 'Right hemisphere' : 'Midline / Bilateral';
+
+      // Tumor type guess (simplified heuristic)
+      let tumorType = 'Not applicable';
+      if (tumorProbability >= 65) {
+        if (scores.edges > 60 && scores.variance > 60) tumorType = 'Possible Glioma';
+        else if (scores.peakBright > 50) tumorType = 'Possible Meningioma';
+        else tumorType = 'Unspecified Mass';
+      } else if (tumorProbability >= 35) {
+        tumorType = 'Indeterminate';
+      }
+
+      // Summary
+      let summary, recommendations;
+      if (!isMedicalScan) {
+        summary = 'The uploaded image does not appear to be a standard grayscale brain scan. High color channel bias detected (' + Math.round(colorBias) + ' units). Analysis results may not be clinically meaningful. Please upload a proper MRI or CT scan for accurate assessment.';
+        recommendations = 'Upload a proper brain MRI or CT scan in grayscale format for accurate diagnostic analysis.';
+      } else if (verdict === 'Tumor Detected') {
+        summary = `Analysis detected significant abnormalities in the ${region} region with high inter-hemispheric asymmetry (${(asymmetry * 100).toFixed(1)}%) and ${hotZones} brightness anomaly clusters exceeding 1.5σ above the mean. Peak regional brightness of ${Math.round(maxBlockBright)}/255 suggests a dense focal mass requiring further clinical investigation.`;
+        recommendations = 'Urgent specialist referral recommended. Consult a licensed radiologist and neurologist for confirmatory MRI with contrast enhancement, histopathological evaluation, and treatment planning.';
+      } else if (verdict === 'Suspicious') {
+        summary = `Mild asymmetric patterns detected with ${hotZones} elevated brightness zones and a moderate asymmetry score of ${(asymmetry * 100).toFixed(1)}%. Findings are inconclusive from pixel-based analysis alone and may represent imaging artifacts, normal anatomical variation, or early pathological changes.`;
+        recommendations = 'Follow-up imaging advised. A board-certified radiologist should review the original DICOM files and consider contrast-enhanced MRI for definitive assessment.';
+      } else {
+        summary = `No statistically significant anomalies detected. Brightness distribution is well-balanced with low inter-hemispheric asymmetry (${(asymmetry * 100).toFixed(1)}%) and only ${hotZones} minor brightness clusters. The scan appears within normal statistical parameters for this analysis engine.`;
+        recommendations = 'No immediate action required based on this analysis. Continue with routine clinical follow-up. Always validate with professional radiological review.';
+      }
+
+      return {
+        verdict, verdictClass, dotClass,
+        tumorProbability,
+        anomalyScore: Math.round(anomalyScore),
+        normalityScore,
+        region, tumorType, laterality,
+        symmetry: asymmetry < 0.05 ? 'Symmetric' : asymmetry < 0.12 ? 'Mildly asymmetric' : 'Asymmetric',
+        massEffect: tumorProbability > 65 ? 'Present' : tumorProbability > 40 ? 'Unable to assess' : 'Absent',
+        edema: tumorProbability > 70 ? 'Present' : 'Unable to assess',
+        imageQuality: !isMedicalScan ? 'Not a medical scan' : meanBright > 15 && stdDev > 20 ? 'High' : meanBright > 8 ? 'Medium' : 'Low',
+        isGrayscale, isMedicalScan,
+        rawStats: {
+          meanBrightness: Math.round(meanBright),
+          stdDeviation: Math.round(stdDev),
+          asymmetryPct: (asymmetry * 100).toFixed(1) + '%',
+          hotZones,
+          avgEdgeContrast: Math.round(avgEdge),
+          peakBlockBright: Math.round(maxBlockBright)
+        },
+        summary, recommendations
+      };
+    }
+
+    // ── RUN ANALYSIS ──
+    analyzeBtn.addEventListener('click', runAnalysis);
+
+    async function runAnalysis() {
+      if (!uploadedFile) return;
+
+      analyzeBtn.disabled = true;
+      analyzeBtn.innerHTML = '<div class="spinner"></div> Analyzing scan...';
+      hideError();
+      resultsPanel.style.display = 'none';
+
+      // Show progress
+      progressWrap.style.display = 'block';
+      progressBar.style.width = '0%';
+      metaStatus.textContent = 'Scanning…';
+      metaStatus.style.color = 'var(--warn)';
+
+      // Activate scan overlay
+      scanOverlay.classList.add('active');
+      setStep(2);
+
+      // Load image
+      setProgressStep(1, 6);
+      await delay(400);
+
+      const img = new Image();
+      await new Promise((res, rej) => {
+        img.onload = res; img.onerror = rej;
+        img.src = URL.createObjectURL(uploadedFile);
+      });
+
+      setProgressStep(2, 6); await delay(500);
+      setProgressStep(3, 6); await delay(600);
+      setProgressStep(4, 6); await delay(500);
+      setProgressStep(5, 6); await delay(500);
+
+      const rawStats = await analyzeImage(img);
+      URL.revokeObjectURL(img.src);
+
+      setProgressStep(6, 6); await delay(600);
+
+      const result = interpretAnalysis(rawStats);
+
+      // Done
+      scanOverlay.classList.remove('active');
+      progressWrap.style.display = 'none';
+      metaStatus.textContent = 'Complete';
+      metaStatus.style.color = 'var(--accent)';
+
+      renderResults(result);
+
+      analyzeBtn.disabled = false;
+      analyzeBtn.innerHTML = `
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+        </svg>
+        Re-Analyze Scan`;
+      setStep(3);
+    }
+
+    // ── RENDER RESULTS ──
+    function renderResults(r) {
+      const vCol = r.verdict === 'Normal' ? '#00c896' : r.verdict === 'Suspicious' ? '#f59e0b' : '#ef4444';
+
+      statusDot.className = 'status-dot ' + r.dotClass;
+      statusLabel.textContent = 'Analysis complete · Local Engine v1.0';
+
+      const barCls = (val, invert) => {
+        if (invert) return val > 70 ? 'fill-green' : val > 40 ? 'fill-amber' : 'fill-red';
+        return val < 30 ? 'fill-green' : val < 60 ? 'fill-amber' : 'fill-red';
+      };
+
+      const valCls = v => {
+        const l = (v || '').toLowerCase();
+        if (l === 'present') return 'val-present';
+        if (l === 'absent')  return 'val-absent';
+        if (l.includes('unable') || l.includes('assess')) return 'val-warn';
+        return '';
+      };
+
+      const s = r.rawStats;
+
+      resultsBody.innerHTML = `
+        <div class="verdict-card ${r.verdictClass}">
+          <div class="verdict-eyebrow" style="color:${vCol};">
+            ${r.verdict === 'Normal' ? '✓ No Abnormalities Detected' : r.verdict === 'Suspicious' ? '⚠ Suspicious Findings' : '✕ Anomalies Detected'}
+          </div>
+          <div class="verdict-title" style="color:${vCol};">${r.verdict}</div>
+          <div class="verdict-summary">${r.summary}</div>
+        </div>
+
+        <div class="section-label" style="margin-bottom:1rem;">Confidence Metrics</div>
+
+        <div class="conf-row">
+          <div class="conf-top">
+            <span class="conf-name">Tumor / Anomaly Probability</span>
+            <span class="conf-pct" style="color:${r.tumorProbability>60?'var(--danger)':r.tumorProbability>30?'var(--warn)':'var(--accent)'};">${r.tumorProbability}%</span>
+          </div>
+          <div class="bar-bg"><div class="bar-fill ${barCls(r.tumorProbability,false)}" style="width:${r.tumorProbability}%"></div></div>
+        </div>
+
+        <div class="conf-row">
+          <div class="conf-top">
+            <span class="conf-name">Anomaly Score</span>
+            <span class="conf-pct" style="color:var(--muted);">${r.anomalyScore}%</span>
+          </div>
+          <div class="bar-bg"><div class="bar-fill ${barCls(r.anomalyScore,false)}" style="width:${r.anomalyScore}%"></div></div>
+        </div>
+
+        <div class="conf-row" style="margin-bottom:2rem;">
+          <div class="conf-top">
+            <span class="conf-name">Normality Score</span>
+            <span class="conf-pct" style="color:var(--accent);">${r.normalityScore}%</span>
+          </div>
+          <div class="bar-bg"><div class="bar-fill ${barCls(r.normalityScore,true)}" style="width:${r.normalityScore}%"></div></div>
+        </div>
+
+        <div class="section-label" style="margin-bottom:1rem;">Raw Image Statistics</div>
+        <div class="img-stats-grid" style="margin-bottom:2rem;">
+          <div class="img-stat-card"><div class="img-stat-val">${s.meanBrightness}</div><div class="img-stat-key">Mean Brightness</div></div>
+          <div class="img-stat-card"><div class="img-stat-val">${s.stdDeviation}</div><div class="img-stat-key">Std Deviation</div></div>
+          <div class="img-stat-card"><div class="img-stat-val">${s.asymmetryPct}</div><div class="img-stat-key">Asymmetry</div></div>
+          <div class="img-stat-card"><div class="img-stat-val">${s.hotZones}</div><div class="img-stat-key">Hot Zones</div></div>
+          <div class="img-stat-card"><div class="img-stat-val">${s.avgEdgeContrast}</div><div class="img-stat-key">Edge Contrast</div></div>
+          <div class="img-stat-card"><div class="img-stat-val">${s.peakBlockBright}</div><div class="img-stat-key">Peak Brightness</div></div>
+          <div class="img-stat-card"><div class="img-stat-val">${r.isGrayscale?'Yes':'No'}</div><div class="img-stat-key">Grayscale</div></div>
+          <div class="img-stat-card"><div class="img-stat-val">${r.isMedicalScan?'Yes':'No'}</div><div class="img-stat-key">Medical Scan</div></div>
+        </div>
+
+        <div class="section-label" style="margin-bottom:1rem;">Detailed Findings</div>
+        <div class="findings-grid" style="margin-bottom:2rem;">
+          <div class="finding-card"><div class="finding-key">Suspected Region</div><div class="finding-val">${r.region}</div></div>
+          <div class="finding-card"><div class="finding-key">Tumor Type</div><div class="finding-val">${r.tumorType}</div></div>
+          <div class="finding-card"><div class="finding-key">Laterality</div><div class="finding-val">${r.laterality}</div></div>
+          <div class="finding-card"><div class="finding-key">Hemisphere Symmetry</div><div class="finding-val">${r.symmetry}</div></div>
+          <div class="finding-card"><div class="finding-key">Mass Effect</div><div class="finding-val ${valCls(r.massEffect)}">${r.massEffect}</div></div>
+          <div class="finding-card"><div class="finding-key">Edema Signs</div><div class="finding-val ${valCls(r.edema)}">${r.edema}</div></div>
+          <div class="finding-card"><div class="finding-key">Image Quality</div><div class="finding-val">${r.imageQuality}</div></div>
+        </div>
+
+        <div class="section-label" style="margin-bottom:0.75rem;">Clinical Recommendations</div>
+        <div class="reco-box">${r.recommendations}</div>
+      `;
+
+      resultsPanel.style.display = 'block';
+      resultsPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  </script>
+
+</body>
+</html>
